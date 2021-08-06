@@ -3,6 +3,9 @@ const Discord = require('discord.js')
 require('discord-reply');
 const client = new Discord.Client()
 const prefix = "+"
+client.on('ready', async() => {
+    console.log(`Logged in as ${client.user.tag}!`)
+});
 client.on('message', async msg => {
 
     if (msg.author.bot) return
@@ -15,16 +18,20 @@ client.on('message', async msg => {
     }
     if (command = "getcolor") {
         let ImgUrl = GetReplyContent(msg);
-        if (ImgUrl = undefined) { return msg.lineReply('Please, use this command by replying to a message with an image!') }
+        console.log(ImgUrl)
+        if (ImgUrl == undefined) { return msg.lineReply('Please, use this command by replying to a message with an image!') }
         console.log(ImgUrl)
     }
 })
 
 function GetReplyContent(msg) {
-    var content;
-    try {
+    if (msg.reference != null) {
+        let id = msg.reference.messageID
+        let content = id.content
+        console.log(id)
         msg.channel.messages.fetch(msg.reference.messageID)
-            .then(message => content = message.content)
-    } catch { return content = undefined }
-    return content
+            .then(message => { return message.content })
+    } else { return undefined }
+
 }
+client.login(process.env.DISCORD_TOKEN)
