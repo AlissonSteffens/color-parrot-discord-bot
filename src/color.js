@@ -6,6 +6,7 @@ const request = require("request");
 const ImageData = require("@andreekeberg/imagedata");
 const PaletteExtractor = require("./vendor/palette-extractor");
 
+//All Functions we gona need to get the color pallet of an Image.
 let namedColorsMap;
 let rgbColorsArr;
 let namedColorsExp;
@@ -98,6 +99,10 @@ async function download(uri, filename) {
         });
     });
 }
+
+//Now with all functions set, that async function GetColor can be used ...
+//Its will be called in de Index.js, when a user use the command... Line 21.
+
 async function GetColor(imageURL, numColors) {
     const { namedColors, namedColorsMap, closest } = await Color.getNamedColors();
 
@@ -131,7 +136,7 @@ async function GetColor(imageURL, numColors) {
                     name = c.name;
                     hex = c.hex;
                 }
-
+                //Now With The color Pallet, we gona return  to Index.js and after, make img...
                 return { name, hex };
             });
 

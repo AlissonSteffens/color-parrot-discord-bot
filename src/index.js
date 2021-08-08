@@ -4,7 +4,8 @@ require('discord-reply');
 const client = new Discord.Client()
 const prefix = "+"
 const isImageUrl = require('is-image-url');
-const GetColor = require('./getcolor')
+const Color = require('./color');
+const MakeImage = require('./image');
 client.on('ready', async() => {
     console.log(`Logged in as ${client.user.tag}!`)
 });
@@ -24,11 +25,8 @@ client.on('message', async msg => {
         let ImgUrl = await CheckRefAttach(RefMessage)
         if (isImageUrl(ImgUrl)) {
 
-            let ColorsArray = await GetColor(ImgUrl)
-            ColorsArray.forEach(color => {
-                msg.channel.send(color.name + color.hex)
-
-            });
+            let ColorsArray = await Color(ImgUrl)
+            let CustomImage = await MakeImage(ColorsArray)
 
         } else {
             return msg.lineReply('Humm... Something went wrong,I think this is not an image. ')
