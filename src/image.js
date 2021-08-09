@@ -231,23 +231,15 @@ Images.generateCollection = (() => {
 
     return generateCollection;
 })();
-async function base64_decode(base64Image, num) {
-    fs.writeFile('image' + num + '.png', base64Image, { encoding: 'base64' }, function(err) {});
 
-}
-async function MakeImage(name) {
+async function MakeImage(palette) {
     const generateAndUploadCollection = async(palette) => {
         const imgBuff = Images.generateCollection(palette);
         const imgBase64 = Images.convertImagebuffTobase64(imgBuff);
         return imgBase64
     };
-    const uploadWorkers = name.map((palette) => generateAndUploadCollection(palette));
-    const mediaIds = await Promise.all(uploadWorkers);
-    mediaIds.forEach(element => {
-        element.split(';base64,').pop();
-        base64_decode(element, mediaIds.indexOf(element))
-    });
-
+    const palletImageObj = await generateAndUploadCollection(palette);
+    return palletImageObj
 }
 
 module.exports = MakeImage;

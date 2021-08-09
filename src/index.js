@@ -6,6 +6,8 @@ const prefix = "+"
 const isImageUrl = require('is-image-url');
 const Color = require('./color');
 const MakeImage = require('./image');
+const fs = require("fs");
+
 client.on('ready', async() => {
     console.log(`Logged in as ${client.user.tag}!`)
 });
@@ -25,16 +27,28 @@ client.on('message', async msg => {
         let ImgUrl = await CheckRefAttach(RefMessage)
         if (isImageUrl(ImgUrl)) {
 
-            let ColorsArray = await Color(ImgUrl)
-            let CustomImage = await MakeImage(ColorsArray)
+            let colorsArray = await Color(ImgUrl)
+            let palletImageObj = await MakeImage(colorsArray)
+            const file = await base64_decodeAndSendEmbed(JSON.stringify(palletImageObj))
 
+
+            await msg.lineReply("The Palette of your image.", { files: ["../color-parrot-discord-bot/" + file] })
+            fs.unlink(file, (err => {
+                if (err) console.log(err)
+            }))
         } else {
             return msg.lineReply('Humm... Something went wrong,I think this is not an image. ')
         }
 
     }
 })
+async function base64_decodeAndSendEmbed(base64Image) {
+    let file = new Date().getTime() + Math.random().toString(16).substr(2);
+    file += '.png';
+    fs.writeFile(file, base64Image, { encoding: 'base64' }, function(err) {});
+    return file
 
+}
 async function GetReplyContent(msg) {
     if (msg.reference != null) {
         let message = await msg.channel.messages.fetch(msg.reference.messageID)

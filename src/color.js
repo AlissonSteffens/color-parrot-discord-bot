@@ -5,6 +5,7 @@ const path = require("path");
 const request = require("request");
 const ImageData = require("@andreekeberg/imagedata");
 const PaletteExtractor = require("./vendor/palette-extractor");
+const CACHE_UPDATE_INTERVAL = 1000 * 60 * 60 * 24 * 3;
 
 //All Functions we gona need to get the color pallet of an Image.
 let namedColorsMap;
