@@ -6,6 +6,11 @@ const fs = require("fs");
 const canvasWidth = 768;
 const canvasHeight = 1024;
 
+/*
+We gonna export the "Images" to use in other scripts, like makepaletteimg.js.
+This is all functions that we gonna use to return the base64 of the custom
+image palette... that we gonna send to the user.
+*/
 Canvas.registerFont("./assets/Inter-ExtraBold.ttf", {
     family: "Inter-EtraBold",
 });
@@ -232,14 +237,4 @@ Images.generateCollection = (() => {
     return generateCollection;
 })();
 
-async function MakeImage(palette) {
-    const generateAndUploadCollection = async(palette) => {
-        const imgBuff = Images.generateCollection(palette);
-        const imgBase64 = Images.convertImagebuffTobase64(imgBuff);
-        return imgBase64
-    };
-    const palletImageObj = await generateAndUploadCollection(palette);
-    return palletImageObj
-}
-
-module.exports = MakeImage;
+module.exports = Images;

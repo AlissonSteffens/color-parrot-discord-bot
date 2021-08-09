@@ -4,8 +4,8 @@ require('discord-reply');
 const client = new Discord.Client()
 const prefix = "+"
 const isImageUrl = require('is-image-url');
-const Color = require('./color');
-const MakeImage = require('./image');
+const GetColor = require('./getcolor');
+const MakeImage = require('./makepaletteimg');
 const fs = require("fs");
 
 client.on('ready', async() => {
@@ -25,14 +25,29 @@ client.on('message', async msg => {
         let RefMessage = await GetReplyContent(msg);
         if (RefMessage == undefined) { return msg.lineReply('Please, use this command by replying to a message with an image!') }
         let ImgUrl = await CheckRefAttach(RefMessage)
+            //If ImageUrl, is an Image, not a video etc... Enter...
+            //else, send a feedback and return...
+
         if (isImageUrl(ImgUrl)) {
-
-            let colorsArray = await Color(ImgUrl)
-            let palletImageObj = await MakeImage(colorsArray)
-            const file = await base64_decodeAndSendEmbed(JSON.stringify(palletImageObj))
-
+            /*Check if the user send a number of colors.
+              If yes,check if number > 9, and if number < 0..
+              Max Number Of Color = 9
+              Default Number of Color = 6
+            */
+            let numcolors = +argvs[1] || 6
+            if (numcolors <= 0) {
+                numcolors = 6
+            }
+            if (numcolors > 9) { numcolors = 9 }
+            //Colors Name and Hex Obj  
+            let colorsObj = await GetColor(ImgUrl, numcolors)
+                //The palette custom Base64 Obj
+            let paletteImageObj = await MakeImage(colorsObj)
+                //The file is the name of the file, that we gonna dowload  to send..
+            const file = await base64_decode(JSON.stringify(paletteImageObj))
 
             await msg.lineReply("The Palette of your image.", { files: ["../color-parrot-discord-bot/" + file] })
+                //After send the message with the Image, unlink file...
             fs.unlink(file, (err => {
                 if (err) console.log(err)
             }))
@@ -42,7 +57,7 @@ client.on('message', async msg => {
 
     }
 })
-async function base64_decodeAndSendEmbed(base64Image) {
+async function base64_decode(base64Image) {
     let file = new Date().getTime() + Math.random().toString(16).substr(2);
     file += '.png';
     fs.writeFile(file, base64Image, { encoding: 'base64' }, function(err) {});
@@ -59,6 +74,7 @@ async function GetReplyContent(msg) {
 async function CheckRefAttach(msg) {
     if (msg.attachments) {
         let atts = msg.attachments.keys().next().value
+        if (!atts) return undefined
         return msg.attachments.get(atts).url
 
     }
