@@ -5,6 +5,7 @@ const client = new Discord.Client()
 const prefix = "+"
 const isImageUrl = require('is-image-url');
 const GetColor = require('./getcolor');
+//const GetMoreColors = require('./GetMoreColors');
 const MakeImage = require('./makepaletteimg');
 const fs = require("fs");
 
@@ -22,6 +23,12 @@ client.on('message', async msg => {
         return
     }
     if (command == "getcolor") {
+        /*
+        Get the Message that user reply(Reference Message ) and
+        after it, check if is undefined, if no, we need to try to 
+        get the Atts url (ImageUrl) and check, using an API, if 
+        this url is an image Url.
+        */
         let RefMessage = await GetReplyContent(msg);
         if (RefMessage == undefined) { return msg.lineReply('Please, use this command by replying to a message with an image!') }
         let ImgUrl = await CheckRefAttach(RefMessage)
@@ -58,6 +65,21 @@ client.on('message', async msg => {
             return msg.lineReply('Humm... Something went wrong,I think this is not an image. ')
         }
 
+    }
+    if (command == "more") {
+        /*
+        Get the Message that user reply(Reference Message ) and
+        after it, check if is undefined, if no, we need to try to 
+        get the Atts url (ImageUrl) and check, using an API, if 
+        this url is an image Url.
+        */
+        let RefMessage = await GetReplyContent(msg);
+        if (RefMessage == undefined) { return msg.lineReply('Please, use this command by replying to a message with an image!') }
+        let ImgUrl = await CheckRefAttach(RefMessage)
+        if (isImageUrl(ImgUrl)) {
+
+            //let colorsObj = await GetMoreColors()
+        }
     }
     if (command == "help") {
         const HelpEmbed = new Discord.MessageEmbed()
