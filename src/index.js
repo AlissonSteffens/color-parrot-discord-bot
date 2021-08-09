@@ -21,7 +21,7 @@ client.on('message', async msg => {
     } else {
         return
     }
-    if (command = "getcolor") {
+    if (command == "getcolor") {
         let RefMessage = await GetReplyContent(msg);
         if (RefMessage == undefined) { return msg.lineReply('Please, use this command by replying to a message with an image!') }
         let ImgUrl = await CheckRefAttach(RefMessage)
@@ -38,7 +38,10 @@ client.on('message', async msg => {
             if (numcolors <= 0) {
                 numcolors = 6
             }
-            if (numcolors > 9) { numcolors = 9 }
+            if (numcolors > 9) {
+                msg.channel.send('So far I can only get up to nine colors...')
+                numcolors = 9
+            }
             //Colors Name and Hex Obj  
             let colorsObj = await GetColor(ImgUrl, numcolors)
                 //The palette custom Base64 Obj
@@ -46,7 +49,7 @@ client.on('message', async msg => {
                 //The file is the name of the file, that we gonna dowload  to send..
             const file = await base64_decode(JSON.stringify(paletteImageObj))
 
-            await msg.lineReply("The Palette of your image.", { files: ["../color-parrot-discord-bot/" + file] })
+            await msg.lineReply("GoGo Robo-Parrot found some colors...", { files: ["../color-parrot-discord-bot/" + file] })
                 //After send the message with the Image, unlink file...
             fs.unlink(file, (err => {
                 if (err) console.log(err)
@@ -56,6 +59,15 @@ client.on('message', async msg => {
         }
 
     }
+    if (command == "help") {
+        const HelpEmbed = new Discord.MessageEmbed()
+            .setTitle(`Tada! I present to you, the power of the parrots.`)
+            .addField('Use +getcolor and i gonna to take the color palette of your image!', value = `Use the command responding to an image with +getcolor and the number of colors you want, for now the maximum color I can get is 9, if you don't send a number of colors, the default sent is 6 colors.`, inline = false)
+            .setColor('#7a58c1')
+            .setImage('https://pbs.twimg.com/profile_images/1390699453934342156/Zo1enErC.jpg');
+        return msg.channel.send(HelpEmbed)
+    }
+
 })
 async function base64_decode(base64Image) {
     let file = new Date().getTime() + Math.random().toString(16).substr(2);
