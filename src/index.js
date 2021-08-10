@@ -5,9 +5,11 @@ const client = new Discord.Client()
 const prefix = "+"
 const isImageUrl = require('is-image-url');
 const GetColor = require('./getcolor');
-//const GetMoreColors = require('./GetMoreColors');
+const GetMoreColors = require('./GetMoreColors');
 const MakeImage = require('./makepaletteimg');
 const fs = require("fs");
+const async = require('mime-kind');
+const Color = require('./color');
 
 client.on('ready', async() => {
     console.log(`Logged in as ${client.user.tag}!`)
@@ -73,12 +75,24 @@ client.on('message', async msg => {
         get the Atts url (ImageUrl) and check, using an API, if 
         this url is an image Url.
         */
-        let RefMessage = await GetReplyContent(msg);
-        if (RefMessage == undefined) { return msg.lineReply('Please, use this command by replying to a message with an image!') }
-        let ImgUrl = await CheckRefAttach(RefMessage)
-        if (isImageUrl(ImgUrl)) {
 
-            //let colorsObj = await GetMoreColors()
+        let InitialMessage = await GetOriginalMessage(msg)
+
+        if (InitialMessage == undefined) { return msg.lineReply(ErrorMsg) }
+        let ImgUrl = await CheckRefAttach(InitialMessage)
+        if (isImageUrl(ImgUrl)) {
+            let Colors = await GetMoreColors(ImgUrl)
+            let paletteImageObj = await MakeImage(Colors)
+
+            if (!paletteImageObj) { return msg.lineReply('Humm...I think there are no more colors in this image, sorry.') }
+            const file = await base64_decode(JSON.stringify(paletteImageObj))
+            await msg.lineReply("GoGo Robo-Parrot found some more awesome colors!", { files: ["../color-parrot-discord-bot/" + file] })
+                //After send the message with the Image, unlink file...
+            fs.unlink(file, (err => {
+                if (err) console.log(err)
+            }))
+        } else {
+            return msg.lineReply('Humm... Something went wrong,I think this is not an image. ')
         }
     }
     if (command == "help") {
@@ -91,6 +105,22 @@ client.on('message', async msg => {
     }
 
 })
+async function GetOriginalMessage(msg) {
+    /*
+        In this Function, we need to receive the first Message, and it's the first
+        of the three messages, so we have to get the content of the answer 3 times,
+        and we have the initial message with the image the user wants to get
+        more colors...
+        */
+    const ErrorMsg = 'Please, use this command by replying to my answer (First Use +GetColor replying to the image).'
+
+    let MessageThatBotSend = await GetReplyContent(msg);
+    if (!MessageThatBotSend) { return msg.lineReply(ErrorMsg) }
+    let MessageThatUserUseGetColor = await GetReplyContent(MessageThatBotSend);
+    if (!MessageThatUserUseGetColor) { return msg.lineReply(ErrorMsg) }
+    let InitialMessageWithTheImg = await GetReplyContent(MessageThatUserUseGetColor);
+    return InitialMessageWithTheImg
+}
 async function base64_decode(base64Image) {
     let file = new Date().getTime() + Math.random().toString(16).substr(2);
     file += '.png';

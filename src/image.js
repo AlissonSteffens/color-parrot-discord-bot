@@ -1,16 +1,10 @@
 const Canvas = require("canvas");
 const chroma = require("chroma-js");
 const Color = require("./color");
-const fs = require("fs");
 
 const canvasWidth = 768;
 const canvasHeight = 1024;
 
-/*
-We gonna export the "Images" to use in other scripts, like makepaletteimg.js.
-This is all functions that we gonna use to return the base64 of the custom
-image palette... that we gonna send to the user.
-*/
 Canvas.registerFont("./assets/Inter-ExtraBold.ttf", {
     family: "Inter-EtraBold",
 });
@@ -21,6 +15,123 @@ Canvas.registerFont("./assets/Inter-Regular.ttf", {
 
 const Images = {};
 
+/**
+ * Sends an image for a random but unique color
+ * @param {object} T The instance of Twit class
+ * @param {object} db instance of db class
+ * @param {object} redis instance of redis db class
+ * @returns {Promise<boolean>} true if an image was sent; false otherwise
+ */
+Images.sendRandomImage = async(T, db, redis) => {
+    let attempts = 3;
+    let generatedUnique = false;
+    let color;
+    while (generatedUnique === false && attempts !== 0) {
+        color = await Color.generateRandomColor();
+        if (!(await redis.checkIfColorExistsInTweets(color.name))) {
+            generatedUnique = true;
+        }
+        attempts -= 1;
+    }
+
+    if (generatedUnique) {
+        const imgBuf = Images.generateImage(color);
+        const imgBase64 = Images.convertImagebuffTobase64(imgBuf);
+        const hashTagColorName = color.name.split(" ").join("_");
+        const hashTagHexValue = color.hex;
+        const mediaIdString = await T.mediaUpload(imgBase64);
+        T.statusesUpdate({
+            status: `#${hashTagColorName} ${hashTagHexValue} https://parrot.color.pizza/color/${hashTagHexValue.replace("#", "")}`,
+            media_ids: mediaIdString,
+        });
+        redis.addColorNameInPostedTweets(color.name);
+        return true;
+    }
+
+    return false;
+};
+
+/**
+ * Cuts off text amd adds ellipsis after text gets too wide
+ * @param {object}  ctx
+ * @param {string}  str
+ * @param {integer} maxWidth
+ * @param {string} ellipsis
+ * @returns {string} cut string including ellipsis character
+ */
+function textOverflowEllipsis(
+    ctx,
+    str,
+    maxWidth,
+    ellipsis = "…"
+) {
+    let width = ctx.measureText(str).width;
+    const ellipsisWidth = ctx.measureText(ellipsis).width;
+
+    if (width <= maxWidth) {
+        return str;
+    }
+
+    let strLength = str.length;
+    while (width >= maxWidth - ellipsisWidth && --strLength > 0) {
+        str = str.substring(0, strLength);
+        width = ctx.measureText(str).width;
+    }
+    return str + ellipsis;
+}
+
+/**
+ * Generates an image [buffer] from a color
+ * @param {object} colorObj
+ * @param {string} colorObj.name
+ * @param {string} colorObj.hex
+ * @return {Buffer}
+ */
+// debug: https://codepen.io/meodai/pen/44b054419c82f3f38ffe8fcb4de517ed?editors=0110
+Images.generateImage = (colorObj) => {
+    const name = colorObj.name;
+    const color = colorObj.hex;
+
+    const canvas = Canvas.createCanvas(canvasWidth, canvasHeight, "png");
+    const ctx = canvas.getContext("2d");
+
+    // paints the background in the requested color
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+    // white bar on the bottom of the picture
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, canvasHeight * 0.8, canvasWidth, canvasHeight * 0.2);
+
+    // color name
+    ctx.fillStyle = "#000";
+    ctx.font = `${canvasHeight * 0.08}px Inter-EtraBold`;
+
+    ctx.fillText(
+        `${textOverflowEllipsis(ctx, name, canvasWidth * 0.9)}`,
+        canvasWidth * 0.05,
+        canvasHeight * 0.8 + canvasHeight * 0.1
+    );
+
+    // color hex value
+    ctx.font = `${canvasHeight * 0.04}px Inter-Regular`;
+    ctx.fillText(
+        `${textOverflowEllipsis(ctx, color, canvasWidth * 0.9)}`,
+        canvasWidth * 0.05,
+        canvasHeight * 0.8 + canvasHeight * 0.1 + canvasHeight * 0.06
+    );
+
+    return canvas.toBuffer("image/png", {
+        compressionLevel: 3,
+        filters: canvas.PNG_FILTER_NONE,
+    });
+};
+
+/**
+ * Converts an image buffer to base64
+ * @param {buffer} imageBuff, image buffer
+ * @return {string}
+ */
 Images.convertImagebuffTobase64 = (imageBuff) => imageBuff.toString("base64");
 
 Images.generateCollection = (() => {
@@ -213,16 +324,16 @@ Images.generateCollection = (() => {
             });
         }
         colors = highest(colors)
-            //colors = colors.sort((a, b) => (chroma(b.hex).luminance() - chroma(a.hex).luminance()) - (chroma(b.hex).hcl()[0] - chroma(a.hex).hcl()[0]));
+        let RealColors = colors[0]
 
         return generateTable(
-            colors.map(
+            RealColors.map(
                 (c) => ({ row1: c.name, row2: c.hex, color: c.hex })
             ), [70, 80],
             660,
             100,
             20,
-            colors.length > 16 ? 2 : 1
+            RealColors.length > 16 ? 2 : 1
         );
     };
 

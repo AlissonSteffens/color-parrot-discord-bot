@@ -1,4 +1,9 @@
+const request = require("request");
+const path = require("path");
+const fs = require("fs");
 const axios = require("axios");
+const ImageData = require("@andreekeberg/imagedata");
+const PaletteExtractor = require("./vendor/palette-extractor");
 const ClosestVector = require("../node_modules/closestvector/.");
 
 const CACHE_UPDATE_INTERVAL = 1000 * 60 * 60 * 24 * 3;
@@ -84,5 +89,60 @@ Color.luminance = (rgb) => Math.sqrt(
     Math.pow(0.587 * rgb.g, 2) +
     Math.pow(0.114 * rgb.b, 2)
 );
+Color.getPalette = async(imageURL, numColors) => {
+    // imports
+    const { namedColors, namedColorsMap, closest } = await Color.getNamedColors();
 
+    const ext = path.extname(imageURL);
+    let file = new Date().getTime() + Math.random().toString(16).substr(2);
+    file += ext;
+    async function download(uri, filename) {
+        return new Promise((resolve, reject) => {
+            request.head(uri, (err, res) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    request(uri).pipe(fs.createWriteStream(filename)).on("close", resolve);
+                }
+            });
+        });
+    }
+    // download image to local disk
+    await download(imageURL, file);
+
+    return new Promise((res, rej) => {
+        ImageData.get(file, (err, { data }) => {
+            if (err) {
+                rej(err);
+                return;
+            }
+
+            const paletteExtractor = new PaletteExtractor();
+            const colorCount = numColors || 32;
+            const colors = paletteExtractor.processImageData(data, colorCount);
+
+            const usableColors = colors.map((hex) => {
+                let name = namedColorsMap.get(hex);
+
+                if (!name) {
+                    const rgb = Color.hexToRgb(hex);
+                    const closestColor = closest.get([rgb.r, rgb.g, rgb.b]);
+                    const c = namedColors[closestColor.index];
+                    name = c.name;
+                    hex = c.hex;
+                }
+
+                return { name, hex };
+            });
+
+            fs.unlink(file, (err) => {
+                if (err) {
+                    rej(err);
+                } else {
+                    res(usableColors);
+                }
+            });
+        });
+    });
+};
 module.exports = Color
