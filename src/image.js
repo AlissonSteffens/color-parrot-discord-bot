@@ -105,7 +105,7 @@ Images.generateImage = (colorObj) => {
 
     // color name
     ctx.fillStyle = "#000";
-    ctx.font = `${canvasHeight * 0.08}px Inter-EtraBold`;
+    ctx.font = `${canvasHeight * 0.09}px Inter-EtraBold`;
 
     ctx.fillText(
         `${textOverflowEllipsis(ctx, name, canvasWidth * 0.9)}`,
@@ -114,7 +114,7 @@ Images.generateImage = (colorObj) => {
     );
 
     // color hex value
-    ctx.font = `${canvasHeight * 0.04}px Inter-Regular`;
+    ctx.font = `${canvasHeight * 0.05}px Inter-Regular`;
     ctx.fillText(
         `${textOverflowEllipsis(ctx, color, canvasWidth * 0.9)}`,
         canvasWidth * 0.05,
@@ -161,7 +161,7 @@ Images.generateCollection = (() => {
 
         // color row1
         ctx.fillStyle = "#000";
-        ctx.font = `700 ${canvasHeight * 0.08}px 'Inter-EtraBold'`;
+        ctx.font = `700 ${canvasHeight * 0.09}px 'Inter-EtraBold'`;
         ctx.fillText(
             `${row1}`,
             canvasWidth * 0.05,
@@ -169,7 +169,7 @@ Images.generateCollection = (() => {
         );
 
         // color row2 value
-        ctx.font = `${canvasHeight * 0.04}px 'Inter-Regular'`;
+        ctx.font = `${canvasHeight * 0.05}px 'Inter-Regular'`;
 
         ctx.fillText(
             `${row2}`,
@@ -279,7 +279,7 @@ Images.generateCollection = (() => {
             // color row1
             ctx.fillStyle = "#fff";
 
-            ctx.font = `900 ${rowHeight * 0.4}px 'Inter-EtraBold'`;
+            ctx.font = `900 ${rowHeight * 0.3}px 'Inter-EtraBold'`;
             ctx.fillText(
                 `${color.row1}`,
                 watchSize[0] + padding + left,
@@ -287,7 +287,7 @@ Images.generateCollection = (() => {
             );
 
             // color row2 value
-            ctx.font = `${rowHeight * 0.2}px 'Inter-Regular'`;
+            ctx.font = `${rowHeight * 0.3}px 'Inter-Regular'`;
 
             ctx.fillText(
                 `${color.row2}`,

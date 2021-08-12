@@ -7,6 +7,7 @@ const isImageUrl = require('is-image-url');
 const GetColor = require('./getcolors');
 const MakeImage = require('./makepaletteimg');
 const fs = require("fs");
+const Color = require('./color');
 
 
 client.on('ready', async() => {
@@ -39,11 +40,11 @@ client.on('message', async msg => {
             /*Check if the user send a number of colors.
               If yes,check if number > 9, and if number < 0..
               Max Number Of Color = 9
-              Default Number of Color = 6
+              Default Number of Color = 9
             */
-            let numcolors = +argvs[1] || 6
+            let numcolors = +argvs[1] || 9
             if (numcolors <= 0) {
-                numcolors = 6
+                numcolors = 9
             }
             if (numcolors > 9) {
                 msg.channel.send('So far I can only get up to nine colors...')
@@ -79,6 +80,8 @@ client.on('message', async msg => {
         let ImgUrl = await CheckRefAttach(InitialMessage)
         if (isImageUrl(ImgUrl)) {
             let Colors = await GetColor(ImgUrl)
+            if (Colors.length <= 1) { return msg.lineReply('Hummm... This image no longer has colors!') }
+            if (Colors.length <= 9) { msg.lineReply(`Hummm...This image doesn't have more than 9 colors... So I'll send all it has.`) }
             let paletteImageObj = await MakeImage(Colors)
 
             if (!paletteImageObj) { return msg.lineReply('Humm...I think there are no more colors in this image, sorry.') }
