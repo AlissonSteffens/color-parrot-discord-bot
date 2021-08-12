@@ -2,14 +2,12 @@ require('dotenv').config()
 const Discord = require('discord.js')
 require('discord-reply');
 const client = new Discord.Client()
-const prefix = "+"
+const prefix = process.env.COMMAND_PREFIX
 const isImageUrl = require('is-image-url');
-const GetColor = require('./getcolor');
-const GetMoreColors = require('./GetMoreColors');
+const GetColor = require('./getcolors');
 const MakeImage = require('./makepaletteimg');
 const fs = require("fs");
-const async = require('mime-kind');
-const Color = require('./color');
+
 
 client.on('ready', async() => {
     console.log(`Logged in as ${client.user.tag}!`)
@@ -77,11 +75,10 @@ client.on('message', async msg => {
         */
 
         let InitialMessage = await GetOriginalMessage(msg)
-
-        if (InitialMessage == undefined) { return msg.lineReply(ErrorMsg) }
+        if (InitialMessage == undefined) { return msg.lineReply(`Please, use this command by replying to my answer (First Use ${prefix}GetColor replying to the image).`) }
         let ImgUrl = await CheckRefAttach(InitialMessage)
         if (isImageUrl(ImgUrl)) {
-            let Colors = await GetMoreColors(ImgUrl)
+            let Colors = await GetColor(ImgUrl)
             let paletteImageObj = await MakeImage(Colors)
 
             if (!paletteImageObj) { return msg.lineReply('Humm...I think there are no more colors in this image, sorry.') }
@@ -98,7 +95,7 @@ client.on('message', async msg => {
     if (command == "help") {
         const HelpEmbed = new Discord.MessageEmbed()
             .setTitle(`Tada! I present to you, the power of the parrots.`)
-            .addField('Use +getcolor and i gonna to take the color palette of your image!', value = `Use the command responding to an image with +getcolor and the number of colors you want, for now the maximum color I can get is 9, if you don't send a number of colors, the default sent is 6 colors. If you want more colors, reply my msg with +more.`, inline = false)
+            .addField(`Use ${prefix}getcolor and i gonna take the color palette of your image!`, value = `Use the command responding to an image with ${prefix}getcolor and the number of colors you want, for now the maximum color I can get is 9, if you don't send a number of colors, the default sent is 6 colors. If you want more colors, reply my msg with ${prefix}more.`, inline = false)
             .setColor('#7a58c1')
             .setImage('https://pbs.twimg.com/profile_images/1390699453934342156/Zo1enErC.jpg');
         return msg.channel.send(HelpEmbed)
@@ -112,16 +109,18 @@ async function GetOriginalMessage(msg) {
         and we have the initial message with the image the user wants to get
         more colors...
         */
-    const ErrorMsg = 'Please, use this command by replying to my answer (First Use +GetColor replying to the image).'
+    const ErrorMsg = `Please, use this command by replying to my answer (First Use ${prefix}GetColor replying to the image).`
 
     let MessageThatBotSend = await GetReplyContent(msg);
-    if (!MessageThatBotSend) { return msg.lineReply(ErrorMsg) }
+    if (!MessageThatBotSend) return undefined
     let MessageThatUserUseGetColor = await GetReplyContent(MessageThatBotSend);
-    if (!MessageThatUserUseGetColor) { return msg.lineReply(ErrorMsg) }
+    if (!MessageThatUserUseGetColor) return undefined
     let InitialMessageWithTheImg = await GetReplyContent(MessageThatUserUseGetColor);
     return InitialMessageWithTheImg
 }
 async function base64_decode(base64Image) {
+
+    //Simple Base64 decode... Dowload the img, and return the Img Name (File)
     let file = new Date().getTime() + Math.random().toString(16).substr(2);
     file += '.png';
     fs.writeFile(file, base64Image, { encoding: 'base64' }, function(err) {});
@@ -129,6 +128,7 @@ async function base64_decode(base64Image) {
 
 }
 async function GetReplyContent(msg) {
+
     if (msg.reference != null) {
         let message = await msg.channel.messages.fetch(msg.reference.messageID)
         return message
