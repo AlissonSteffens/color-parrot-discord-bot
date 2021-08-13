@@ -35,7 +35,7 @@ const setupColors = (namedColors) => {
         c.luminance = Color.luminance(rgb);
     });
 
-    closest = new ClosestVector(rgbColorsArr);
+    closest = new ClosestVector(rgbColorsArr, true);
 };
 Color.rgbToHex = ({ r, g, b }) => {
     const s = (x) => x.toString(16).padStart(2, "0");

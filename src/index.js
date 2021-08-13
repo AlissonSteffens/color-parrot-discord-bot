@@ -18,12 +18,16 @@ client.on('message', async msg => {
     if (msg.author.bot) return
     let command = ''
     const argvs = msg.content.split(" ");
-    if (argvs[0].startsWith(prefix)) {
+    if (msg.content.includes("@here") || msg.content.includes("@everyone")) return false;
+    if (msg.mentions.has(client.user.id)) {
+        argvs.shift();
+        command = argvs[0].toLocaleLowerCase();
+    } else if (argvs[0].startsWith(prefix)) {
         command = argvs[0].replace(prefix, "").toLocaleLowerCase();
     } else {
         return
     }
-    if (command == "getcolor" || command == "getcolors") {
+    if (command == "getcolor" || command == "getcolors" || command == "colors" || command == "color") {
         /*
         Get the Message that user reply(Reference Message ) and
         after it, check if is undefined, if no, we need to try to 
@@ -102,12 +106,11 @@ client.on('message', async msg => {
     if (command == "help") {
         const HelpEmbed = new Discord.MessageEmbed()
             .setTitle(`Tada! I present to you, the power of the parrots.`)
-            .addField(`Use ${prefix}getcolor and i gonna take the color palette of your image!`, value = `Use the command responding to an image with ${prefix}getcolor and the number of colors you want, for now the maximum color I can get is 9, if you don't send a number of colors, the default sent is 6 colors. If you want more colors, reply my msg with ${prefix}more.`, inline = false)
+            .addField(`Use ${prefix}getcolor and i gonna take the color palette of your image!`, value = `Use the command responding to an image with ${prefix}getcolor and the number of colors you want, for now the maximum color I can get is 9, if you don't send a number of colors, the default sent is 9 colors. If you want more colors, reply my msg with ${prefix}more.`, inline = false)
             .setColor('#7a58c1')
             .setImage('https://pbs.twimg.com/profile_images/1390699453934342156/Zo1enErC.jpg');
         return msg.channel.send(HelpEmbed)
     }
-
 })
 async function GetOriginalMessage(msg) {
     /*

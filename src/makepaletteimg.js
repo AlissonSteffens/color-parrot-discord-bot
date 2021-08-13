@@ -5,13 +5,6 @@ const Images = require('./image');
 the user.
 */
 async function MakeImage(palette) {
-    const uniqueArray = palette.filter((thing, index) => {
-        const _thing = JSON.stringify(thing);
-        return index === palette.findIndex(obj => {
-            return JSON.stringify(obj) === _thing;
-        });
-    });
-    palette = uniqueArray
     const generateAndUploadCollection = async(palette) => {
         const imgBuff = Images.generateCollection(palette);
         const imgBase64 = Images.convertImagebuffTobase64(imgBuff);
