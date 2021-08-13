@@ -7,7 +7,7 @@ const isImageUrl = require('is-image-url');
 const GetColor = require('./getcolors');
 const MakeImage = require('./makepaletteimg');
 const fs = require("fs");
-const Color = require('./color');
+
 
 
 client.on('ready', async() => {
@@ -23,7 +23,7 @@ client.on('message', async msg => {
     } else {
         return
     }
-    if (command == "getcolor") {
+    if (command == "getcolor" || command == "getcolors") {
         /*
         Get the Message that user reply(Reference Message ) and
         after it, check if is undefined, if no, we need to try to 
@@ -42,6 +42,7 @@ client.on('message', async msg => {
               Max Number Of Color = 9
               Default Number of Color = 9
             */
+            msg.channel.send(`Just a second! i'm working on it!`)
             let numcolors = +argvs[1] || 9
             if (numcolors <= 0) {
                 numcolors = 9
@@ -75,10 +76,13 @@ client.on('message', async msg => {
         this url is an image Url.
         */
 
+
         let InitialMessage = await GetOriginalMessage(msg)
         if (InitialMessage == undefined) { return msg.lineReply(`Please, use this command by replying to my answer (First Use ${prefix}GetColor replying to the image).`) }
         let ImgUrl = await CheckRefAttach(InitialMessage)
         if (isImageUrl(ImgUrl)) {
+            msg.channel.send('You can leave it to me !')
+
             let Colors = await GetColor(ImgUrl)
             if (Colors.length <= 1) { return msg.lineReply('Hummm... This image no longer has colors!') }
             if (Colors.length <= 9) { msg.lineReply(`Hummm...This image doesn't have more than 9 colors... So I'll send all it has.`) }
