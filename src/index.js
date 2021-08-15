@@ -29,7 +29,36 @@ client.on('message', async msg => {
     } else {
         return
     }
-    if (GetColorsCommand.includes(command)) {
+    const isGetImageColorCommand = () => {
+
+
+        return !(!msg.content.includes("what color is this") &&
+            !msg.content.includes("what colour is this") &&
+            !msg.content.includes("what color is that") &&
+            !msg.content.includes("what colour is that") &&
+            !msg.content.includes("what is this color") &&
+            !msg.content.includes("what is this colour") &&
+            !msg.content.includes("what is that color") &&
+            !msg.content.includes("what is that colour") &&
+            !msg.content.includes("what are those colors") &&
+            !msg.content.includes("what are those colours") &&
+            !msg.content.includes("what colors are in this") &&
+            !msg.content.includes("what colours are in this") &&
+            !msg.content.includes("what is the dominant color") &&
+            !msg.content.includes("what are the colors") &&
+            !msg.content.includes("what are the colours") &&
+            !msg.content.includes("what colors are in this picture") &&
+            !msg.content.includes("what colours are in this picture") &&
+            !msg.content.includes("what colors are these") &&
+            !msg.content.includes("what colours are these") &&
+            !msg.content.includes("what colors are those") &&
+            !msg.content.includes("what colours are those") &&
+            !msg.content.includes("what are these colors") &&
+            !msg.content.includes("what are these colours") &&
+            !GetColorsCommand.includes(command)
+        );
+    };
+    if (isGetImageColorCommand()) {
         /*
         Get the Message that user reply(Reference Message ) and
         after it, check if is undefined, if no, we need to try to 
@@ -106,6 +135,9 @@ client.on('message', async msg => {
         } else {
             return msg.lineReply('Humm... Something went wrong,I think this is not an image. ')
         }
+    }
+    if (command == "name" || msg.content.includes("what is the name of") || msg.content.includes("what's the name of")) {
+        console.log('yahhh')
     }
     if (command == "help") {
         const HelpEmbed = new Discord.MessageEmbed()
