@@ -5,9 +5,11 @@ const client = new Discord.Client()
 const prefix = process.env.COMMAND_PREFIX
 const isImageUrl = require('is-image-url');
 const GetColor = require('./getcolors');
+const GetNameOfHex = require('./getnameofhex');
 const MakeImage = require('./makepaletteimg');
 const fs = require("fs");
 const Color = require('./color');
+const { argv } = require('process');
 const GetColorsCommand = ['getcolor', 'getcolors', 'colors', 'color']
 
 
@@ -137,7 +139,8 @@ client.on('message', async msg => {
         }
     }
     if (command == "name" || msg.content.includes("what is the name of") || msg.content.includes("what's the name of")) {
-        console.log('yahhh')
+        const NameOfThecolor = GetNameOfHex(msg, argvs)
+        return
     }
     if (command == "help") {
         const HelpEmbed = new Discord.MessageEmbed()
