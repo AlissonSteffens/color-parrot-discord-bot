@@ -6,7 +6,8 @@ const ImageData = require("@andreekeberg/imagedata");
 const PaletteExtractor = require("./vendor/palette-extractor");
 const ClosestVector = require("../node_modules/closestvector/.");
 const { default: jpeg } = require("@jimp/jpeg");
-
+const mmm = require('mmmagic'),
+    Magic = mmm.Magic;
 const CACHE_UPDATE_INTERVAL = 1000 * 60 * 60 * 24 * 3;
 
 //All Functions we gona need to get the color pallet of an Image and return it like obj.
@@ -112,8 +113,23 @@ Color.getPalette = async(imageURL, numColors) => {
     }
     // download image to local disk
     await download(imageURL, file);
+    var magic = new Magic(mmm.MAGIC_MIME_TYPE);
+    async function GetMime() {
+        return new Promise((res, rej) => {
+            magic.detectFile("../color-parrot-discord-bot/" + file, function(err, result) {
+                if (err) rej(err);
+                res(result);
 
-
+            })
+        })
+    }
+    const mime = await GetMime()
+    if (mime != 'image/jpeg' && mime != 'image/png') {
+        fs.unlink(file, (err => {
+            if (err) console.log(err)
+        }))
+        return undefined
+    }
 
     return new Promise((res, rej) => {
         ImageData.get(file, (err, { data }) => {

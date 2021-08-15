@@ -7,8 +7,8 @@ const isImageUrl = require('is-image-url');
 const GetColor = require('./getcolors');
 const MakeImage = require('./makepaletteimg');
 const fs = require("fs");
+const Color = require('./color');
 const GetColorsCommand = ['getcolor', 'getcolors', 'colors', 'color']
-
 
 
 
@@ -91,6 +91,7 @@ client.on('message', async msg => {
             msg.channel.send('You can leave it to me !')
 
             let Colors = await GetColor(ImgUrl)
+            if (!Colors) { return msg.lineReply('Sorry but Parrots only accepts jpeg or png Images!') }
             if (Colors.length <= 1) { return msg.lineReply('Hummm... This image no longer has colors!') }
             if (Colors.length <= 9) { msg.lineReply(`Hummm...This image doesn't have more than 9 colors... So I'll send all it has.`) }
             let paletteImageObj = await MakeImage(Colors)
