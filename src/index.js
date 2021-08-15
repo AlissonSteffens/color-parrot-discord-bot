@@ -7,6 +7,8 @@ const isImageUrl = require('is-image-url');
 const GetColor = require('./getcolors');
 const MakeImage = require('./makepaletteimg');
 const fs = require("fs");
+const GetColorsCommand = ['getcolor', 'getcolors', 'colors', 'color']
+
 
 
 
@@ -20,14 +22,19 @@ client.on('message', async msg => {
     const argvs = msg.content.split(" ");
     if (msg.content.includes("@here") || msg.content.includes("@everyone")) return false;
     if (msg.mentions.has(client.user.id)) {
-        argvs.shift();
-        command = argvs[0].toLocaleLowerCase();
+        if (argvs.length == 1) {
+            command = argvs[0].replace(prefix, "").toLocaleLowerCase();
+        } else {
+            argvs.shift()
+            command = argvs[0].toLocaleLowerCase();
+
+        }
     } else if (argvs[0].startsWith(prefix)) {
         command = argvs[0].replace(prefix, "").toLocaleLowerCase();
     } else {
         return
     }
-    if (command == "getcolor" || command == "getcolors" || command == "colors" || command == "color") {
+    if (GetColorsCommand.includes(command)) {
         /*
         Get the Message that user reply(Reference Message ) and
         after it, check if is undefined, if no, we need to try to 
@@ -57,7 +64,8 @@ client.on('message', async msg => {
             }
             //Colors Name and Hex Obj  
             let colorsObj = await GetColor(ImgUrl, numcolors)
-                //The palette custom Base64 Obj
+            if (!colorsObj) { return msg.lineReply('Sorry but Parrots only accepts jpeg or png Images!') }
+            //The palette custom Base64 Obj
             let paletteImageObj = await MakeImage(colorsObj)
                 //The file is the name of the file, that we gonna dowload  to send..
             const file = await base64_decode(JSON.stringify(paletteImageObj))
@@ -112,6 +120,7 @@ client.on('message', async msg => {
         return msg.channel.send(HelpEmbed)
     }
 })
+
 async function GetOriginalMessage(msg) {
     /*
         In this Function, we need to receive the first Message, and it's the first
@@ -119,7 +128,6 @@ async function GetOriginalMessage(msg) {
         and we have the initial message with the image the user wants to get
         more colors...
         */
-    const ErrorMsg = `Please, use this command by replying to my answer (First Use ${prefix}GetColor replying to the image).`
 
     let MessageThatBotSend = await GetReplyContent(msg);
     if (!MessageThatBotSend) return undefined

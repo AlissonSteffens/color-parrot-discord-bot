@@ -5,6 +5,7 @@ const axios = require("axios");
 const ImageData = require("@andreekeberg/imagedata");
 const PaletteExtractor = require("./vendor/palette-extractor");
 const ClosestVector = require("../node_modules/closestvector/.");
+const { default: jpeg } = require("@jimp/jpeg");
 
 const CACHE_UPDATE_INTERVAL = 1000 * 60 * 60 * 24 * 3;
 
@@ -94,6 +95,8 @@ Color.getPalette = async(imageURL, numColors) => {
     const { namedColors, namedColorsMap, closest } = await Color.getNamedColors();
 
     const ext = path.extname(imageURL);
+    const acceptsext = ['.jpg', '.jpeg', '.jfif', ' .pjpeg', '.pjp', '.png']
+    if (!acceptsext.includes(ext)) { return }
     let file = new Date().getTime() + Math.random().toString(16).substr(2);
     file += ext;
     async function download(uri, filename) {
@@ -109,6 +112,8 @@ Color.getPalette = async(imageURL, numColors) => {
     }
     // download image to local disk
     await download(imageURL, file);
+
+
 
     return new Promise((res, rej) => {
         ImageData.get(file, (err, { data }) => {
