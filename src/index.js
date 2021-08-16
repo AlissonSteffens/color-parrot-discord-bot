@@ -2,14 +2,17 @@ require('dotenv').config()
 const Discord = require('discord.js')
 require('discord-reply');
 const client = new Discord.Client()
-const prefix = "+"
+const prefix = process.env.COMMAND_PREFIX
 const isImageUrl = require('is-image-url');
-const GetColor = require('./getcolor');
-const GetMoreColors = require('./GetMoreColors');
+const GetColor = require('./getcolors');
+const GetNameOfHex = require('./getnameofhex');
 const MakeImage = require('./makepaletteimg');
 const fs = require("fs");
-const async = require('mime-kind');
 const Color = require('./color');
+const { argv } = require('process');
+const GetColorsCommand = ['getcolor', 'getcolors', 'colors', 'color']
+
+
 
 client.on('ready', async() => {
     console.log(`Logged in as ${client.user.tag}!`)
@@ -19,12 +22,48 @@ client.on('message', async msg => {
     if (msg.author.bot) return
     let command = ''
     const argvs = msg.content.split(" ");
-    if (argvs[0].startsWith(prefix)) {
+    if (msg.content.includes("@here") || msg.content.includes("@everyone")) return false;
+    if (msg.mentions.has(client.user.id) && msg.content.includes(client.user.id)) {
+        if (argvs.length <= 1) {
+            return
+        }
+        argvs.shift()
+        command = argvs[0].replace(prefix, "").toLocaleLowerCase();
+    } else if (argvs[0].startsWith(prefix)) {
         command = argvs[0].replace(prefix, "").toLocaleLowerCase();
     } else {
         return
     }
-    if (command == "getcolor") {
+    const isGetImageColorCommand = () => {
+
+
+        return !(!msg.content.includes("what color is this") &&
+            !msg.content.includes("what colour is this") &&
+            !msg.content.includes("what color is that") &&
+            !msg.content.includes("what colour is that") &&
+            !msg.content.includes("what is this color") &&
+            !msg.content.includes("what is this colour") &&
+            !msg.content.includes("what is that color") &&
+            !msg.content.includes("what is that colour") &&
+            !msg.content.includes("what are those colors") &&
+            !msg.content.includes("what are those colours") &&
+            !msg.content.includes("what colors are in this") &&
+            !msg.content.includes("what colours are in this") &&
+            !msg.content.includes("what is the dominant color") &&
+            !msg.content.includes("what are the colors") &&
+            !msg.content.includes("what are the colours") &&
+            !msg.content.includes("what colors are in this picture") &&
+            !msg.content.includes("what colours are in this picture") &&
+            !msg.content.includes("what colors are these") &&
+            !msg.content.includes("what colours are these") &&
+            !msg.content.includes("what colors are those") &&
+            !msg.content.includes("what colours are those") &&
+            !msg.content.includes("what are these colors") &&
+            !msg.content.includes("what are these colours") &&
+            !GetColorsCommand.includes(command)
+        );
+    };
+    if (isGetImageColorCommand()) {
         /*
         Get the Message that user reply(Reference Message ) and
         after it, check if is undefined, if no, we need to try to 
@@ -41,11 +80,12 @@ client.on('message', async msg => {
             /*Check if the user send a number of colors.
               If yes,check if number > 9, and if number < 0..
               Max Number Of Color = 9
-              Default Number of Color = 6
+              Default Number of Color = 9
             */
-            let numcolors = +argvs[1] || 6
+            msg.channel.send(`Just a second! i'm working on it!`)
+            let numcolors = +argvs[1] || 9
             if (numcolors <= 0) {
-                numcolors = 6
+                numcolors = 9
             }
             if (numcolors > 9) {
                 msg.channel.send('So far I can only get up to nine colors...')
@@ -53,7 +93,8 @@ client.on('message', async msg => {
             }
             //Colors Name and Hex Obj  
             let colorsObj = await GetColor(ImgUrl, numcolors)
-                //The palette custom Base64 Obj
+            if (!colorsObj) { return msg.lineReply('Sorry but Parrots only accepts jpeg or png Images!') }
+            //The palette custom Base64 Obj
             let paletteImageObj = await MakeImage(colorsObj)
                 //The file is the name of the file, that we gonna dowload  to send..
             const file = await base64_decode(JSON.stringify(paletteImageObj))
@@ -76,12 +117,17 @@ client.on('message', async msg => {
         this url is an image Url.
         */
 
-        let InitialMessage = await GetOriginalMessage(msg)
 
-        if (InitialMessage == undefined) { return msg.lineReply(ErrorMsg) }
+        let InitialMessage = await GetOriginalMessage(msg)
+        if (InitialMessage == undefined) { return msg.lineReply(`Please, use this command by replying to my answer (First Use ${prefix}GetColor replying to the image).`) }
         let ImgUrl = await CheckRefAttach(InitialMessage)
         if (isImageUrl(ImgUrl)) {
-            let Colors = await GetMoreColors(ImgUrl)
+            msg.channel.send('You can leave it to me !')
+
+            let Colors = await GetColor(ImgUrl)
+            if (!Colors) { return msg.lineReply('Sorry but Parrots only accepts jpeg or png Images!') }
+            if (Colors.length <= 1) { return msg.lineReply('Hummm... This image no longer has colors!') }
+            if (Colors.length <= 9) { msg.lineReply(`Hummm...This image doesn't have more than 9 colors... So I'll send all it has.`) }
             let paletteImageObj = await MakeImage(Colors)
 
             if (!paletteImageObj) { return msg.lineReply('Humm...I think there are no more colors in this image, sorry.') }
@@ -95,16 +141,20 @@ client.on('message', async msg => {
             return msg.lineReply('Humm... Something went wrong,I think this is not an image. ')
         }
     }
+    if (command == "name" || msg.content.includes("what is the name of") || msg.content.includes("what's the name of")) {
+        const NameOfThecolor = GetNameOfHex(msg, argvs)
+        return
+    }
     if (command == "help") {
         const HelpEmbed = new Discord.MessageEmbed()
             .setTitle(`Tada! I present to you, the power of the parrots.`)
-            .addField('Use +getcolor and i gonna to take the color palette of your image!', value = `Use the command responding to an image with +getcolor and the number of colors you want, for now the maximum color I can get is 9, if you don't send a number of colors, the default sent is 6 colors. If you want more colors, reply my msg with +more.`, inline = false)
+            .addField(`Use ${prefix}getcolor and i gonna take the color palette of your image!`, value = `Use the command responding to an image with ${prefix}getcolor and the number of colors you want, for now the maximum color I can get is 9, if you don't send a number of colors, the default sent is 9 colors. If you want more colors, reply my msg with ${prefix}more.`, inline = false)
             .setColor('#7a58c1')
             .setImage('https://pbs.twimg.com/profile_images/1390699453934342156/Zo1enErC.jpg');
         return msg.channel.send(HelpEmbed)
     }
-
 })
+
 async function GetOriginalMessage(msg) {
     /*
         In this Function, we need to receive the first Message, and it's the first
@@ -112,16 +162,17 @@ async function GetOriginalMessage(msg) {
         and we have the initial message with the image the user wants to get
         more colors...
         */
-    const ErrorMsg = 'Please, use this command by replying to my answer (First Use +GetColor replying to the image).'
 
     let MessageThatBotSend = await GetReplyContent(msg);
-    if (!MessageThatBotSend) { return msg.lineReply(ErrorMsg) }
+    if (!MessageThatBotSend) return undefined
     let MessageThatUserUseGetColor = await GetReplyContent(MessageThatBotSend);
-    if (!MessageThatUserUseGetColor) { return msg.lineReply(ErrorMsg) }
+    if (!MessageThatUserUseGetColor) return undefined
     let InitialMessageWithTheImg = await GetReplyContent(MessageThatUserUseGetColor);
     return InitialMessageWithTheImg
 }
 async function base64_decode(base64Image) {
+
+    //Simple Base64 decode... Dowload the img, and return the Img Name (File)
     let file = new Date().getTime() + Math.random().toString(16).substr(2);
     file += '.png';
     fs.writeFile(file, base64Image, { encoding: 'base64' }, function(err) {});
@@ -129,6 +180,7 @@ async function base64_decode(base64Image) {
 
 }
 async function GetReplyContent(msg) {
+
     if (msg.reference != null) {
         let message = await msg.channel.messages.fetch(msg.reference.messageID)
         return message
