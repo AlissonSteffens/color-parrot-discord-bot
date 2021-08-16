@@ -24,6 +24,9 @@ client.on('message', async msg => {
     const argvs = msg.content.split(" ");
     if (msg.content.includes("@here") || msg.content.includes("@everyone")) return false;
     if (msg.mentions.has(client.user.id) && msg.content.includes(client.user.id)) {
+        if (argvs.length <= 1) {
+            return
+        }
         argvs.shift()
         command = argvs[0].replace(prefix, "").toLocaleLowerCase();
     } else if (argvs[0].startsWith(prefix)) {
