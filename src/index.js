@@ -148,7 +148,8 @@ client.on('message', async msg => {
     if (command == "help") {
         const HelpEmbed = new Discord.MessageEmbed()
             .setTitle(`Tada! I present to you, the power of the parrots.`)
-            .addField(`Use ${prefix}getcolor and i gonna take the color palette of your image!`, value = `Use the command responding to an image with ${prefix}getcolor and the number of colors you want, for now the maximum color I can get is 9, if you don't send a number of colors, the default sent is 9 colors. If you want more colors, reply my msg with ${prefix}more.`, inline = false)
+            .setDescription(`My prefix is "**${prefix}**" or you can just mention me.`)
+            .addField(`want the parrots in your server too?`, value = "Our robo-parrots are happy to do help you ![Add me to your server!](https://discord.com/oauth2/authorize?client_id=873156023903457280&permissions=51200&scope=bot)", inline = true)
             .setColor('#7a58c1')
             .setImage('https://pbs.twimg.com/profile_images/1390699453934342156/Zo1enErC.jpg');
         return msg.channel.send(HelpEmbed)
