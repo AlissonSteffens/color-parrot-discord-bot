@@ -8,8 +8,6 @@ const GetColor = require('./getcolors');
 const GetNameOfHex = require('./getnameofhex');
 const MakeImage = require('./makepaletteimg');
 const fs = require("fs");
-const Color = require('./color');
-const { argv } = require('process');
 const GetColorsCommand = ['getcolor', 'getcolors', 'colors', 'color']
 
 
@@ -142,7 +140,7 @@ client.on('message', async msg => {
         }
     }
     if (command == "name" || msg.content.includes("what is the name of") || msg.content.includes("what's the name of")) {
-        const NameOfThecolor = GetNameOfHex(msg, argvs)
+        GetNameOfHex(msg, argvs)
         return
     }
     if (command == "help") {
