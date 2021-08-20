@@ -8,8 +8,6 @@ const GetColor = require('./getcolors');
 const GetNameOfHex = require('./getnameofhex');
 const MakeImage = require('./makepaletteimg');
 const fs = require("fs");
-const Color = require('./color');
-const { argv } = require('process');
 const GetColorsCommand = ['getcolor', 'getcolors', 'colors', 'color']
 
 
@@ -142,16 +140,21 @@ client.on('message', async msg => {
         }
     }
     if (command == "name" || msg.content.includes("what is the name of") || msg.content.includes("what's the name of")) {
-        const NameOfThecolor = GetNameOfHex(msg, argvs)
+        GetNameOfHex(msg, argvs)
         return
     }
     if (command == "help") {
         const HelpEmbed = new Discord.MessageEmbed()
             .setTitle(`Tada! I present to you, the power of the parrots.`)
-            .addField(`Use ${prefix}getcolor and i gonna take the color palette of your image!`, value = `Use the command responding to an image with ${prefix}getcolor and the number of colors you want, for now the maximum color I can get is 9, if you don't send a number of colors, the default sent is 9 colors. If you want more colors, reply my msg with ${prefix}more.`, inline = false)
+            .setDescription(`My prefix is "**${prefix}**" or you can just mention me (Use the prefix or mention before the command).`)
+            .addField(`Want the parrots in your server too?`, value = "Our robo-parrots are happy to do help you ![Add me to your server!](https://discord.com/oauth2/authorize?client_id=873156023903457280&permissions=51200&scope=bot)", inline = true)
             .setColor('#7a58c1')
-            .setImage('https://pbs.twimg.com/profile_images/1390699453934342156/Zo1enErC.jpg');
+            .setThumbnail('https://pbs.twimg.com/profile_images/1390699453934342156/Zo1enErC.jpg')
+            .setImage('https://pbs.twimg.com/profile_banners/1109778441379950592/1627417955/1080x360')
+            .addFields({ name: 'Get the color Of an Image', value: "`getcolor, color, colors, what color is this...`" }, { name: 'Get the color name of an Hex', value: "`name, what is the name of, what's the name of.`" }, { name: 'Get more colors than you think', value: '`more...(Reply in the palette that i send...)`', inline: true }, { name: 'Help Command', value: "`help... my command list.`" })
+            .addField('Some Links:', value = '[GitHub Repository](https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=RickAstley), [Twitter Version](https://twitter.com/color_parrot), [Twitter Repository Version](https://github.com/meodai/colorparrot-twitter-bot)')
         return msg.channel.send(HelpEmbed)
+
     }
 })
 
