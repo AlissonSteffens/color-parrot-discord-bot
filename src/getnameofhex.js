@@ -1,11 +1,11 @@
 const Color = require('./color');
 const hexColorRegex = require("hex-color-regex");
 require('discord-reply');
-const ClosestVector = require("../node_modules/closestvector/.");
 
 async function NameOfTheHex(msg, userMessageArray) {
 
     const {
+        namedColors,
         namedColorsMap,
         closest,
     } = await Color.getNamedColors();
@@ -34,13 +34,9 @@ async function NameOfTheHex(msg, userMessageArray) {
         msg.lineReply(`Tada! Our robo-parrots says that the name of  **${hex} ** is  ** ${namedColorsMap.get(hex)} **`)
     } else {
         // get the closest named colors
-        closestColor = new ClosestVector([rgb.r, rgb.g, rgb.b]);
-        const s = (x) => x.toString(16).padStart(2, "0");
-        hex = "#" + s(closestColor.list[0]) + s(closestColor.list[1]) + s(closestColor.list[2])
-        color = namedColorsMap.get(hex)
-
-
-        msg.lineReply(`Oh our robo-parrots says that your closest color is **${color} ** and hex is  **${hex} **`)
+        closestColor = closest.get([rgb.r, rgb.g, rgb.b]);
+        color = namedColors[closestColor.index];
+        msg.lineReply(`Oh our robo-parrots says that your closest color is **${color.name} ** and hex is  **${color.hex} **`)
     }
 
 }
