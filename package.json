@@ -2,7 +2,7 @@
     "name": "color-parrot-discord-bot",
     "version": "1.0.0",
     "description": "A bot that enables you to find awesome colors",
-    "main": "index.js",
+    "main": "/src/index.js",
     "dependencies": {
         "@andreekeberg/imagedata": "^1.0.2",
         "axios": "^0.21.1",
@@ -21,14 +21,15 @@
     },
     "devDependencies": {},
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "node ./src/index.js"
     },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/AlissonSteffens/color-parrot-discord-bot.git"
     },
     "author": "",
-    "license": "ISC",
+    "license": "MIT",
     "bugs": {
         "url": "https://github.com/AlissonSteffens/color-parrot-discord-bot/issues"
     },
