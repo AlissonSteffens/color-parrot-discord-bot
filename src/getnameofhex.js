@@ -30,7 +30,6 @@ async function NameOfTheHex(msg, userMessageArray) {
         msg.lineReply(`Hummmm.... Sorry but our robo-parrots don't find any Valid Hex color...`)
 
     } else if (namedColorsMap.get(hex)) {
-
         msg.lineReply(`Tada! Our robo-parrots says that the name of  **${hex} ** is  ** ${namedColorsMap.get(hex)} **`)
     } else {
         // get the closest named colors

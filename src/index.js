@@ -10,8 +10,6 @@ const MakeImage = require('./makepaletteimg');
 const fs = require("fs");
 const GetColorsCommand = ['getcolor', 'getcolors', 'colors', 'color']
 
-
-
 client.on('ready', async() => {
     console.log(`Logged in as ${client.user.tag}!`)
 });
