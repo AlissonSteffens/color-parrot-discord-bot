@@ -14,6 +14,10 @@ A bot that enables you to find awesome colors
 
 ## Usage
 @Color Parrot help
+
 @Color Parrot what color is this?  (as a reply to a message with an image)
+
 @Color Parrot more - (as a reply to a palette message) 
+
 @Color Parrot what is the name of #323456?
+
