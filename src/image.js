@@ -23,48 +23,42 @@ const Images = {};
  * @returns {Promise<boolean>} true if an image was sent; false otherwise
  */
 Images.sendRandomImage = async(T, db, redis) => {
-    let attempts = 3;
-    let generatedUnique = false;
+    const maxAttempts = 3;
     let color;
-    while (generatedUnique === false && attempts !== 0) {
-        color = await Color.generateRandomColor();
-        if (!(await redis.checkIfColorExistsInTweets(color.name))) {
-            generatedUnique = true;
-        }
-        attempts -= 1;
-    }
 
-    if (generatedUnique) {
-        const imgBuf = Images.generateImage(color);
-        const imgBase64 = Images.convertImagebuffTobase64(imgBuf);
-        const hashTagColorName = color.name.split(" ").join("_");
-        const hashTagHexValue = color.hex;
-        const mediaIdString = await T.mediaUpload(imgBase64);
-        T.statusesUpdate({
-            status: `#${hashTagColorName} ${hashTagHexValue} https://parrot.color.pizza/color/${hashTagHexValue.replace("#", "")}`,
-            media_ids: mediaIdString,
-        });
-        redis.addColorNameInPostedTweets(color.name);
-        return true;
+    for (let attempts = 0; attempts < maxAttempts; attempts++) {
+        color = await Color.generateRandomColor();
+        const isColorUnique = !(await redis.checkIfColorExistsInTweets(color.name));
+
+        if (isColorUnique) {
+            const imgBuf = Images.generateImage(color);
+            const imgBase64 = Images.convertImagebuffTobase64(imgBuf);
+            const hashTagColorName = color.name.split(" ").join("_");
+            const hashTagHexValue = color.hex;
+            const mediaIdString = await T.mediaUpload(imgBase64);
+
+            T.statusesUpdate({
+                status: `#${hashTagColorName} ${hashTagHexValue} https://parrot.color.pizza/color/${hashTagHexValue.replace("#", "")}`,
+                media_ids: mediaIdString,
+            });
+
+            redis.addColorNameInPostedTweets(color.name);
+            return true;
+        }
     }
 
     return false;
 };
 
 /**
- * Cuts off text amd adds ellipsis after text gets too wide
- * @param {object}  ctx
+ * Cuts off text and adds ellipsis after text gets too wide
+ * @param {CanvasRenderingContext2D} ctx
  * @param {string}  str
- * @param {integer} maxWidth
+ * @param {number} maxWidth
  * @param {string} ellipsis
  * @returns {string} cut string including ellipsis character
  */
-function textOverflowEllipsis(
-    ctx,
-    str,
-    maxWidth,
-    ellipsis = "…"
-) {
+Images.textOverflowEllipsis = function(ctx, str, maxWidth, ellipsis = "…") {
     let width = ctx.measureText(str).width;
     const ellipsisWidth = ctx.measureText(ellipsis).width;
 
@@ -72,13 +66,13 @@ function textOverflowEllipsis(
         return str;
     }
 
-    let strLength = str.length;
-    while (width >= maxWidth - ellipsisWidth && --strLength > 0) {
-        str = str.substring(0, strLength);
+    // Use slice instead of substring for better performance
+    while (width >= maxWidth - ellipsisWidth && str.length > 0) {
+        str = str.slice(0, -1);
         width = ctx.measureText(str).width;
     }
     return str + ellipsis;
-}
+};
 
 /**
  * Generates an image [buffer] from a color
@@ -87,39 +81,31 @@ function textOverflowEllipsis(
  * @param {string} colorObj.hex
  * @return {Buffer}
  */
-// debug: https://codepen.io/meodai/pen/44b054419c82f3f38ffe8fcb4de517ed?editors=0110
 Images.generateImage = (colorObj) => {
-    const name = colorObj.name;
-    const color = colorObj.hex;
+    const { name, hex: color } = colorObj;
 
     const canvas = Canvas.createCanvas(canvasWidth, canvasHeight, "png");
     const ctx = canvas.getContext("2d");
 
-    // paints the background in the requested color
+    // Paints the background in the requested color
     ctx.fillStyle = color;
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-    // white bar on the bottom of the picture
+    // White bar on the bottom of the picture
     ctx.fillStyle = "#fff";
     ctx.fillRect(0, canvasHeight * 0.8, canvasWidth, canvasHeight * 0.2);
 
-    // color name
+    // Color name
     ctx.fillStyle = "#000";
     ctx.font = `${canvasHeight * 0.09}px Inter-EtraBold`;
 
-    ctx.fillText(
-        `${textOverflowEllipsis(ctx, name, canvasWidth * 0.9)}`,
-        canvasWidth * 0.05,
-        canvasHeight * 0.8 + canvasHeight * 0.1
-    );
+    const nameText = Images.textOverflowEllipsis(ctx, name, canvasWidth * 0.9);
+    ctx.fillText(nameText, canvasWidth * 0.05, canvasHeight * 0.8 + canvasHeight * 0.1);
 
-    // color hex value
+    // Color hex value
     ctx.font = `${canvasHeight * 0.05}px Inter-Regular`;
-    ctx.fillText(
-        `${textOverflowEllipsis(ctx, color, canvasWidth * 0.9)}`,
-        canvasWidth * 0.05,
-        canvasHeight * 0.8 + canvasHeight * 0.1 + canvasHeight * 0.06
-    );
+    const colorText = Images.textOverflowEllipsis(ctx, color, canvasWidth * 0.9);
+    ctx.fillText(colorText, canvasWidth * 0.05, canvasHeight * 0.8 + canvasHeight * 0.1 + canvasHeight * 0.06);
 
     return canvas.toBuffer("image/png", {
         compressionLevel: 3,

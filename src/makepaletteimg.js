@@ -4,13 +4,13 @@ const Images = require('./image');
 "getcolor.js") and return the Base64 of the custom image that we gonna send for
 the user.
 */
-async function MakeImage(palette) {
-    const generateAndUploadCollection = async(palette) => {
-        const imgBuff = Images.generateCollection(palette);
-        const imgBase64 = Images.convertImagebuffTobase64(imgBuff);
-        return imgBase64
+async function makeImage(palette) {
+    const generateAndUploadCollection = async (palette) => {
+        const imgBuff = await Images.generateCollection(palette);
+        const imgBase64 = await Images.convertImagebuffTobase64(imgBuff);
+        return imgBase64;
     };
-    const palletImageObj = await generateAndUploadCollection(palette);
-    return palletImageObj
+    const paletteImageObj = await generateAndUploadCollection(palette);
+    return paletteImageObj;
 }
-module.exports = MakeImage;
+module.exports = makeImage;
